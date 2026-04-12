@@ -59,12 +59,41 @@ async function renderJob(jobId, props) {
     });
 
     jobs.get(jobId).status = "done";
+
+    // Callback si une URL est fournie
+    if (props.callbackUrl && props.filmId) {
+      const publicUrl = process.env.PUBLIC_URL || `http://127.0.0.1:${PORT}`;
+      fetch(props.callbackUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filmId: props.filmId,
+          jobId,
+          status: "done",
+          downloadUrl: `${publicUrl}/render/${jobId}/download`,
+        }),
+      }).catch((e) => console.error("Callback error:", e));
+    }
   } catch (err) {
     const job = jobs.get(jobId);
     job.status = "failed";
     job.error = err.message;
     console.error("Render error:", err);
     await unlink(outputPath).catch(() => {});
+
+    // Callback erreur
+    if (props.callbackUrl && props.filmId) {
+      fetch(props.callbackUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filmId: props.filmId,
+          jobId,
+          status: "failed",
+          error: err.message,
+        }),
+      }).catch(() => {});
+    }
   }
 }
 
