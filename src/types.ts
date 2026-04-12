@@ -1,4 +1,4 @@
-export interface SegmentData {
+export type SegmentData = {
   videoUrl: string;
   tcIn: number; // seconds
   tcOut: number; // seconds
@@ -8,19 +8,19 @@ export interface SegmentData {
     y: string;
     align?: "left" | "center" | "right";
   };
-}
+};
 
-export interface IntroData {
+export type IntroData = {
   titre: string;
   sousTitre?: string;
   duree: number; // seconds
-}
+};
 
-export interface OutroData {
+export type OutroData = {
   duree: number; // seconds
-}
+};
 
-export interface FilmProps {
+export type FilmProps = {
   titre: string;
   paysCode: string;
   segments: SegmentData[];
@@ -31,4 +31,4 @@ export interface FilmProps {
   voixOffUrl?: string;
   voixOffVolume?: number;
   fps: number;
-}
+};

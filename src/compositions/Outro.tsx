@@ -5,12 +5,22 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+import { loadFont } from "@remotion/google-fonts/Montserrat";
+
+const { fontFamily: montserrat } = loadFont("normal", {
+  weights: ["400", "500"],
+  subsets: ["latin"],
+});
 
 export const Outro: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const fadeIn = interpolate(frame, [0, fps * 0.6], [0, 1], {
+  const fadeIn = interpolate(frame, [0, 0.6 * fps], [0, 1], {
+    extrapolateRight: "clamp",
+  });
+
+  const scaleUp = interpolate(frame, [0, 0.6 * fps], [0.95, 1], {
     extrapolateRight: "clamp",
   });
 
@@ -24,11 +34,12 @@ export const Outro: React.FC = () => {
         justifyContent: "center",
         gap: 24,
         opacity: fadeIn,
+        transform: `scale(${scaleUp})`,
       }}
     >
       <p
         style={{
-          fontFamily: "'Montserrat', sans-serif",
+          fontFamily: montserrat,
           fontSize: 28,
           letterSpacing: "0.3em",
           textTransform: "uppercase",
@@ -51,7 +62,7 @@ export const Outro: React.FC = () => {
 
       <p
         style={{
-          fontFamily: "'Montserrat', sans-serif",
+          fontFamily: montserrat,
           fontSize: 18,
           color: "rgba(255,255,255,0.5)",
           margin: 0,

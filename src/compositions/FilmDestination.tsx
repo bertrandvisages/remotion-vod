@@ -1,9 +1,14 @@
 import React from "react";
-import { AbsoluteFill, Audio, Series } from "remotion";
+import { AbsoluteFill } from "remotion";
+import { Audio } from "@remotion/media";
+import { TransitionSeries, linearTiming } from "@remotion/transitions";
+import { fade } from "@remotion/transitions/fade";
 import { Intro } from "./Intro";
 import { Segment } from "./Segment";
 import { Outro } from "./Outro";
 import { FilmProps } from "../types";
+
+const TRANSITION_FRAMES = 15;
 
 export const FilmDestination: React.FC<FilmProps> = ({
   segments,
@@ -17,43 +22,68 @@ export const FilmDestination: React.FC<FilmProps> = ({
 }) => {
   return (
     <AbsoluteFill style={{ backgroundColor: "#1a1a1a" }}>
-      {/* Piste musique de fond */}
+      {/* Piste musique de fond avec fade in */}
       {musiqueUrl && (
-        <Audio src={musiqueUrl} volume={musiqueVolume} loop />
+        <Audio
+          src={musiqueUrl}
+          volume={(f) => {
+            // Fade in sur 2 secondes
+            if (f < 2 * fps) return (f / (2 * fps)) * musiqueVolume;
+            return musiqueVolume;
+          }}
+          loop
+        />
       )}
 
       {/* Piste voix off */}
       {voixOffUrl && <Audio src={voixOffUrl} volume={voixOffVolume} />}
 
-      {/* Timeline vidéo */}
-      <Series>
+      {/* Timeline vidéo avec transitions */}
+      <TransitionSeries>
         {/* Intro */}
-        <Series.Sequence durationInFrames={Math.round(intro.duree * fps)}>
+        <TransitionSeries.Sequence
+          durationInFrames={Math.round(intro.duree * fps)}
+        >
           <Intro
             titre={intro.titre}
             sousTitre={intro.sousTitre}
             duree={intro.duree}
           />
-        </Series.Sequence>
+        </TransitionSeries.Sequence>
 
-        {/* Segments */}
+        {/* Transition intro → premier segment */}
+        <TransitionSeries.Transition
+          presentation={fade()}
+          timing={linearTiming({ durationInFrames: TRANSITION_FRAMES })}
+        />
+
+        {/* Segments avec transitions entre eux */}
         {segments.map((seg, index) => {
           const durationFrames = Math.round((seg.tcOut - seg.tcIn) * fps);
           return (
-            <Series.Sequence
-              key={index}
-              durationInFrames={durationFrames}
-            >
-              <Segment {...seg} />
-            </Series.Sequence>
+            <React.Fragment key={index}>
+              <TransitionSeries.Sequence durationInFrames={durationFrames}>
+                <Segment {...seg} />
+              </TransitionSeries.Sequence>
+
+              {/* Transition vers le segment suivant ou l'outro */}
+              <TransitionSeries.Transition
+                presentation={fade()}
+                timing={linearTiming({
+                  durationInFrames: TRANSITION_FRAMES,
+                })}
+              />
+            </React.Fragment>
           );
         })}
 
         {/* Outro */}
-        <Series.Sequence durationInFrames={Math.round(outro.duree * fps)}>
+        <TransitionSeries.Sequence
+          durationInFrames={Math.round(outro.duree * fps)}
+        >
           <Outro />
-        </Series.Sequence>
-      </Series>
+        </TransitionSeries.Sequence>
+      </TransitionSeries>
     </AbsoluteFill>
   );
 };

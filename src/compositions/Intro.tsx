@@ -5,24 +5,48 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { IntroData } from "../types";
+import { loadFont as loadPlayfair } from "@remotion/google-fonts/PlayfairDisplay";
+import { loadFont as loadMontserrat } from "@remotion/google-fonts/Montserrat";
 
-export const Intro: React.FC<IntroData> = ({ titre, sousTitre }) => {
+const { fontFamily: playfair } = loadPlayfair("normal", {
+  weights: ["400"],
+  subsets: ["latin"],
+});
+
+const { fontFamily: montserrat } = loadMontserrat("normal", {
+  weights: ["400", "500", "700"],
+  subsets: ["latin"],
+});
+
+export type IntroProps = {
+  titre: string;
+  sousTitre?: string;
+  duree: number;
+};
+
+export const Intro: React.FC<IntroProps> = ({ titre, sousTitre }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const fadeIn = interpolate(frame, [0, fps * 0.8], [0, 1], {
+  const fadeIn = interpolate(frame, [0, 0.8 * fps], [0, 1], {
     extrapolateRight: "clamp",
   });
 
-  const titleY = interpolate(frame, [0, fps * 0.8], [40, 0], {
+  const titleY = interpolate(frame, [0, 0.8 * fps], [40, 0], {
     extrapolateRight: "clamp",
   });
 
   const subtitleOpacity = interpolate(
     frame,
-    [fps * 0.5, fps * 1.2],
+    [0.5 * fps, 1.2 * fps],
     [0, 1],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+  );
+
+  const separatorWidth = interpolate(
+    frame,
+    [0.8 * fps, 1.5 * fps],
+    [0, 200],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   );
 
@@ -39,7 +63,7 @@ export const Intro: React.FC<IntroData> = ({ titre, sousTitre }) => {
     >
       <h1
         style={{
-          fontFamily: "'Playfair Display', serif",
+          fontFamily: playfair,
           fontSize: 120,
           fontWeight: 400,
           fontStyle: "italic",
@@ -56,7 +80,7 @@ export const Intro: React.FC<IntroData> = ({ titre, sousTitre }) => {
       {sousTitre && (
         <p
           style={{
-            fontFamily: "'Montserrat', sans-serif",
+            fontFamily: montserrat,
             fontSize: 36,
             letterSpacing: "0.2em",
             textTransform: "uppercase",
@@ -70,10 +94,9 @@ export const Intro: React.FC<IntroData> = ({ titre, sousTitre }) => {
         </p>
       )}
 
-      {/* Séparateur */}
       <div
         style={{
-          width: 200,
+          width: separatorWidth,
           height: 3,
           background:
             "linear-gradient(to right, transparent, #ff8c8e, transparent)",
