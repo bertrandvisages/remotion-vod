@@ -51,15 +51,13 @@ const Subtitle: React.FC<{ text: string; durF: number; s: number }> = ({ text, d
   );
 };
 
-const Shot: React.FC<RoomTourShot & { s: number }> = ({ videoUrl, durationSeconds, subtitle, voUrl, ownAudio, s }) => {
-  const { fps, durationInFrames } = useVideoConfig();
+const Shot: React.FC<RoomTourShot & { s: number }> = ({ videoUrl, subtitle, voUrl, ownAudio, s }) => {
+  const { durationInFrames } = useVideoConfig();
   const frame = useCurrentFrame();
-  // léger fondu d'entrée sur chaque plan
-  const fadeIn = interpolate(frame, [0, 0.3 * fps], [0, 1], { extrapolateRight: "clamp" });
-  // Ken Burns doux
+  // Ken Burns doux (pas de fondu au noir entre plans -> coupes franches, propres)
   const scale = interpolate(frame, [0, durationInFrames], [1.04, 1.1], { extrapolateRight: "clamp" });
   return (
-    <AbsoluteFill style={{ backgroundColor: "#000", opacity: fadeIn }}>
+    <AbsoluteFill style={{ backgroundColor: "#000" }}>
       <AbsoluteFill style={{ transform: `scale(${scale})` }}>
         <Video src={videoUrl} muted={!ownAudio} objectFit="cover" style={{ width: "100%", height: "100%" }} />
       </AbsoluteFill>
@@ -98,9 +96,9 @@ export const RoomTour: React.FC<RoomTourProps> = ({ kicker, shots, musiqueUrl })
         </div>
       )}
 
-      {/* Signature VoD bas-droite (logo) */}
-      <div style={{ position: "absolute", bottom: 84 * s, right: 64 * s }}>
-        <Img src={staticFile("vod-logo.png")} style={{ width: 300 * s, height: "auto", filter: "drop-shadow(0 2px 10px rgba(0,0,0,0.55))" }} />
+      {/* Signature VoD centrée en bas (logo) */}
+      <div style={{ position: "absolute", bottom: 84 * s, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
+        <Img src={staticFile("vod-logo.png")} style={{ width: 320 * s, height: "auto", filter: "drop-shadow(0 2px 10px rgba(0,0,0,0.55))" }} />
       </div>
     </AbsoluteFill>
   );
