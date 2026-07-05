@@ -41,12 +41,17 @@ const Keyword: React.FC<{ text: string; durF: number; s: number }> = ({ text, du
   const inOp = interpolate(frame, [0.15 * fps, 0.5 * fps], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const outOp = interpolate(frame, [durF - 0.45 * fps, durF - 0.15 * fps], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const op = Math.min(inOp, outOp);
-  const spacing = interpolate(frame, [0.15 * fps, 0.6 * fps], [0.42, 0.16], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const lineW = interpolate(frame, [0.3 * fps, 0.75 * fps], [0, 120 * s], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const y = interpolate(frame, [0.15 * fps, 0.6 * fps], [24 * s, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const lineW = interpolate(frame, [0.3 * fps, 0.75 * fps], [0, 140 * s], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  // Taille adaptative : mot unique = monumental, phrase = plus fine (élégant, magazine).
+  const len = text.trim().length;
+  const words = text.trim().split(/\s+/).length;
+  const fontSize = words <= 1 ? 96 : len <= 18 ? 62 : len <= 30 ? 48 : 40;
+  const spacing = words <= 1 ? 0.16 : 0.1;
   return (
-    <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 320 * s, opacity: op }}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 18 * s }}>
-        <div style={{ fontFamily: oswald, fontWeight: 700, fontSize: 96 * s, lineHeight: 1, textTransform: "uppercase", color: "#fff", letterSpacing: `${spacing}em`, textShadow: "0 4px 30px rgba(0,0,0,0.6)" }}>
+    <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 300 * s, opacity: op }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 * s, transform: `translateY(${y}px)`, maxWidth: 900 * s }}>
+        <div style={{ fontFamily: oswald, fontWeight: 600, fontSize: fontSize * s, lineHeight: 1.08, textTransform: "uppercase", color: "#fff", letterSpacing: `${spacing}em`, textAlign: "center", textShadow: "0 4px 30px rgba(0,0,0,0.65)" }}>
           {text}
         </div>
         <div style={{ width: lineW, height: 4 * s, borderRadius: 4, background: CORAL }} />
