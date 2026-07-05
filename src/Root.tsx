@@ -4,6 +4,7 @@ import { FilmDestination } from "./compositions/FilmDestination";
 import { HookDestination, HookDestinationProps } from "./compositions/HookDestination";
 import { RoomTour, RoomTourProps } from "./compositions/RoomTour";
 import { DestinationTrailer, DestinationTrailerProps } from "./compositions/DestinationTrailer";
+import { HotelTrailer, HotelTrailerProps } from "./compositions/HotelTrailer";
 import { FilmProps } from "./types";
 
 const defaultProps: FilmProps = {
@@ -95,6 +96,22 @@ export const RemotionRoot: React.FC = () => {
         calculateMetadata={({ props }) => {
           const fps = props.fps || 30;
           const total = (props.clips || []).reduce((a, c) => a + Math.max(1, Math.round((c.duration || 2) * fps)), 0);
+          return { width: 1080, height: 1920, fps, durationInFrames: Math.max(1, total) };
+        }}
+      />
+
+      {/* Trailer d'hôtel : montage rapide 9:16 des clips animés + voix off + musique. */}
+      <Composition
+        id="HotelTrailer"
+        component={HotelTrailer}
+        durationInFrames={600}
+        fps={30}
+        width={1080}
+        height={1920}
+        defaultProps={{ clips: [] as HotelTrailerProps["clips"], fps: 30 }}
+        calculateMetadata={({ props }) => {
+          const fps = props.fps || 30;
+          const total = (props.clips || []).reduce((a, c) => a + Math.max(1, Math.round((c.duration || 1.4) * fps)), 0);
           return { width: 1080, height: 1920, fps, durationInFrames: Math.max(1, total) };
         }}
       />
