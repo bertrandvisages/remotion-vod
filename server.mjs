@@ -97,11 +97,62 @@ async function renderJob(jobId, props) {
   }
 }
 
+// --------------- Generic render job ---------------
+// Rend n'importe quelle composition en laissant selectComposition() calculer
+// dimensions/durée via son calculateMetadata (pas d'override manuel).
+async function renderGenericJob(jobId, compositionId, inputProps) {
+  jobs.get(jobId).status = "processing";
+  const outputPath = join(RENDERS_DIR, `${jobId}.mp4`);
+
+  try {
+    const composition = await selectComposition({
+      serveUrl: bundled,
+      id: compositionId,
+      inputProps,
+    });
+
+    await renderMedia({
+      composition,
+      serveUrl: bundled,
+      codec: "h264",
+      // yuv420p : compat maximale navigateur / QuickTime (evite le "fichier
+      // corrompu" observe avec yuvj420p sur certains lecteurs).
+      pixelFormat: "yuv420p",
+      outputLocation: outputPath,
+      inputProps,
+    });
+
+    jobs.get(jobId).status = "done";
+  } catch (err) {
+    const job = jobs.get(jobId);
+    job.status = "failed";
+    job.error = err.message;
+    console.error("Render error:", err);
+    await unlink(outputPath).catch(() => {});
+  }
+}
+
 // --------------- Fastify app ---------------
 const app = Fastify({ logger: true });
 
 // Health
 app.get("/health", async () => ({ status: "ok" }));
+
+// POST /render — enqueue a generic render { compositionId, inputProps }
+app.post("/render", async (request, reply) => {
+  const { compositionId, inputProps } = request.body || {};
+  if (!compositionId) {
+    return reply.code(400).send({ error: "'compositionId' is required" });
+  }
+
+  const jobId = randomUUID();
+  jobs.set(jobId, { status: "pending", createdAt: new Date().toISOString() });
+
+  // Fire and forget
+  renderGenericJob(jobId, compositionId, inputProps || {});
+
+  return reply.code(202).send({ jobId });
+});
 
 // POST /render-film — enqueue a render job
 app.post("/render-film", async (request, reply) => {
