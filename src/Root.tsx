@@ -2,6 +2,7 @@ import React from "react";
 import { Composition } from "remotion";
 import { FilmDestination } from "./compositions/FilmDestination";
 import { HookDestination, HookDestinationProps } from "./compositions/HookDestination";
+import { RoomTour, RoomTourProps } from "./compositions/RoomTour";
 import { FilmProps } from "./types";
 
 const defaultProps: FilmProps = {
@@ -62,6 +63,22 @@ export const RemotionRoot: React.FC = () => {
             fps,
             durationInFrames: Math.round(dur * fps),
           };
+        }}
+      />
+
+      {/* Room tour influenceuse : multi-plans verticaux + sous-titres. */}
+      <Composition
+        id="RoomTour"
+        component={RoomTour}
+        durationInFrames={360}
+        fps={30}
+        width={1080}
+        height={1920}
+        defaultProps={{ kicker: "FOUR SEASONS · MAUI", shots: [] as RoomTourProps["shots"], fps: 30 }}
+        calculateMetadata={({ props }) => {
+          const fps = props.fps || 30;
+          const total = (props.shots || []).reduce((a, sh) => a + Math.max(1, Math.round((sh.durationSeconds || 3) * fps)), 0);
+          return { width: 1080, height: 1920, fps, durationInFrames: Math.max(1, total) };
         }}
       />
     </>
