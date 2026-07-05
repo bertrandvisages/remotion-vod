@@ -1,17 +1,17 @@
 import React from "react";
 import {
   AbsoluteFill,
+  Img,
   Series,
   interpolate,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
 import { Video, Audio } from "@remotion/media";
 import { loadFont as loadMontserrat } from "@remotion/google-fonts/Montserrat";
-import { loadFont as loadOswald } from "@remotion/google-fonts/Oswald";
 
 const { fontFamily: montserrat } = loadMontserrat("normal", { weights: ["500", "600", "700"], subsets: ["latin"] });
-const { fontFamily: oswald } = loadOswald("normal", { weights: ["600", "700"], subsets: ["latin"] });
 
 const CORAL = "#F28B9A";
 
@@ -98,11 +98,9 @@ export const RoomTour: React.FC<RoomTourProps> = ({ kicker, shots, musiqueUrl })
         </div>
       )}
 
-      {/* Signature VoD bas-droite */}
-      <div style={{ position: "absolute", bottom: 90 * s, right: 64 * s }}>
-        <span style={{ fontFamily: oswald, fontSize: 30 * s, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#fff", textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}>
-          Voyage <span style={{ color: CORAL }}>On Demand</span>
-        </span>
+      {/* Signature VoD bas-droite (logo) */}
+      <div style={{ position: "absolute", bottom: 84 * s, right: 64 * s }}>
+        <Img src={staticFile("vod-logo.png")} style={{ width: 300 * s, height: "auto", filter: "drop-shadow(0 2px 10px rgba(0,0,0,0.55))" }} />
       </div>
     </AbsoluteFill>
   );
