@@ -35,14 +35,13 @@ export type DestinationTrailerProps = {
   fps?: number;
 };
 
-const Keyword: React.FC<{ text: string; durF: number; s: number }> = ({ text, durF, s }) => {
+const Keyword: React.FC<{ text: string; s: number }> = ({ text, s }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const inOp = interpolate(frame, [0.15 * fps, 0.5 * fps], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const outOp = interpolate(frame, [durF - 0.45 * fps, durF - 0.15 * fps], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const op = Math.min(inOp, outOp);
-  const y = interpolate(frame, [0.15 * fps, 0.6 * fps], [24 * s, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const lineW = interpolate(frame, [0.3 * fps, 0.75 * fps], [0, 140 * s], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  // Texte lisible DÈS l'apparition du plan (fondu très court pour éviter un pop dur),
+  // stable ensuite -> temps de lecture maximal. Seul le filet rose s'anime.
+  const op = interpolate(frame, [0, 0.1 * fps], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const lineW = interpolate(frame, [0.1 * fps, 0.65 * fps], [0, 150 * s], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   // Taille adaptative : mot unique = monumental, phrase = plus fine (élégant, magazine).
   const len = text.trim().length;
   const words = text.trim().split(/\s+/).length;
@@ -50,7 +49,7 @@ const Keyword: React.FC<{ text: string; durF: number; s: number }> = ({ text, du
   const spacing = words <= 1 ? 0.16 : 0.1;
   return (
     <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 300 * s, opacity: op }}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 * s, transform: `translateY(${y}px)`, maxWidth: 900 * s }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 * s, maxWidth: 900 * s }}>
         <div style={{ fontFamily: oswald, fontWeight: 600, fontSize: fontSize * s, lineHeight: 1.08, textTransform: "uppercase", color: "#fff", letterSpacing: `${spacing}em`, textAlign: "center", textShadow: "0 4px 30px rgba(0,0,0,0.65)" }}>
           {text}
         </div>
@@ -102,7 +101,7 @@ const Clip: React.FC<TrailerClip & { s: number }> = ({ videoUrl, tcIn, focalX = 
       </AbsoluteFill>
       {/* léger vignettage bas pour la lisibilité des mots-clés */}
       <AbsoluteFill style={{ background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 38%)" }} />
-      {keyword && <Keyword text={keyword} durF={durationInFrames} s={s} />}
+      {keyword && <Keyword text={keyword} s={s} />}
       {title && <TitleReveal text={title} tagline={tagline} s={s} />}
     </AbsoluteFill>
   );
