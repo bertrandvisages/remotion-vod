@@ -133,10 +133,8 @@ export const DestinationTrailer: React.FC<DestinationTrailerProps> = ({ clips, m
         ))}
       </Series>
 
-      {/* Cold open : ouverture au noir */}
+      {/* Cold open : ouverture au noir (entrée uniquement, pas de fermeture au noir) */}
       <AbsoluteFill style={{ backgroundColor: "#000", opacity: interpolate(useCurrentFrame(), [0, 0.6 * fps], [1, 0], { extrapolateRight: "clamp" }), pointerEvents: "none" }} />
-      {/* Fermeture au noir */}
-      <AbsoluteFill style={{ backgroundColor: "#000", opacity: interpolate(useCurrentFrame(), [durationInFrames - 0.5 * fps, durationInFrames], [0, 1], { extrapolateLeft: "clamp" }), pointerEvents: "none" }} />
 
       {/* Signature VoD bas (logo) */}
       <div style={{ position: "absolute", bottom: 96 * s, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: interpolate(useCurrentFrame(), [durationInFrames - 3 * fps, durationInFrames - 2.2 * fps], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }}>
