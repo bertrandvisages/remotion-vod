@@ -67,14 +67,14 @@ const TitleReveal: React.FC<{ text: string; tagline?: string; s: number }> = ({ 
   const lineW = interpolate(frame, [0.55 * fps, 1.1 * fps], [0, 280 * s], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const tagOp = interpolate(frame, [0.9 * fps, 1.4 * fps], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
-    <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", opacity: op }}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22 * s, transform: `scale(${scale})` }}>
-        <div style={{ fontFamily: oswald, fontWeight: 700, fontSize: 168 * s, lineHeight: 0.95, textTransform: "uppercase", color: "#fff", letterSpacing: "0.02em", textShadow: "0 6px 40px rgba(0,0,0,0.7)" }}>
+    <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", opacity: op, padding: `0 ${60 * s}px` }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22 * s, transform: `scale(${scale})`, width: "100%", maxWidth: 960 * s, textAlign: "center" }}>
+        <div style={{ width: "100%", fontFamily: oswald, fontWeight: 700, fontSize: 168 * s, lineHeight: 0.95, textTransform: "uppercase", color: "#fff", letterSpacing: "0.02em", textAlign: "center", textShadow: "0 6px 40px rgba(0,0,0,0.7)" }}>
           {text}
         </div>
         <div style={{ width: lineW, height: 5 * s, borderRadius: 4, background: CORAL }} />
         {tagline && (
-          <div style={{ fontFamily: montserrat, fontWeight: 500, fontSize: 34 * s, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.9)", opacity: tagOp }}>
+          <div style={{ width: "100%", fontFamily: montserrat, fontWeight: 500, fontSize: 34 * s, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.9)", textAlign: "center", opacity: tagOp }}>
             {tagline}
           </div>
         )}
