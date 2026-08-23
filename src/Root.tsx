@@ -2,7 +2,7 @@ import React from "react";
 import { Composition } from "remotion";
 import { FilmDestination } from "./compositions/FilmDestination";
 import { HookDestination, HookDestinationProps } from "./compositions/HookDestination";
-import { RoomTour, RoomTourProps } from "./compositions/RoomTour";
+import { RoomTour, RoomTourProps, PACKSHOT_SEC } from "./compositions/RoomTour";
 import { DestinationTrailer, DestinationTrailerProps } from "./compositions/DestinationTrailer";
 import { HotelTrailer, HotelTrailerProps } from "./compositions/HotelTrailer";
 import { FilmProps } from "./types";
@@ -80,7 +80,8 @@ export const RemotionRoot: React.FC = () => {
         calculateMetadata={({ props }) => {
           const fps = props.fps || 30;
           const total = (props.shots || []).reduce((a, sh) => a + Math.max(1, Math.round((sh.durationSeconds || 3) * fps)), 0);
-          return { width: 1080, height: 1920, fps, durationInFrames: Math.max(1, total) };
+          const packshot = props.hotelName ? Math.round(PACKSHOT_SEC * fps) : 0;
+          return { width: 1080, height: 1920, fps, durationInFrames: Math.max(1, total + packshot) };
         }}
       />
 
