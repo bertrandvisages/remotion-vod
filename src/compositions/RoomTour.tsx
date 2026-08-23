@@ -2,6 +2,7 @@ import React from "react";
 import {
   AbsoluteFill,
   Img,
+  Sequence,
   Series,
   interpolate,
   staticFile,
@@ -27,8 +28,14 @@ export type RoomTourProps = {
   kicker?: string;
   shots: RoomTourShot[];
   musiqueUrl?: string;
+  hotelName?: string;
+  destination?: string;
   fps?: number;
 };
+
+// Durée du packshot de fin (carte hôtel + destination). Aussi utilisée par le
+// calculateMetadata de Root.tsx pour rallonger la composition.
+export const PACKSHOT_SEC = 2.8;
 
 const Subtitle: React.FC<{ text: string; durF: number; s: number }> = ({ text, durF, s }) => {
   const frame = useCurrentFrame();
@@ -69,9 +76,38 @@ const Shot: React.FC<RoomTourShot & { s: number }> = ({ videoUrl, subtitle, voUr
   );
 };
 
-export const RoomTour: React.FC<RoomTourProps> = ({ kicker, shots, musiqueUrl }) => {
-  const { fps, width } = useVideoConfig();
+// Packshot de fin : carte hôtel + destination + logo, fond sombre, fondus
+// d'entrée/sortie. Donne aussi un vrai "tail" -> la fin ne coupe plus net.
+const Packshot: React.FC<{ hotelName: string; destination: string; s: number }> = ({ hotelName, destination, s }) => {
+  const frame = useCurrentFrame();
+  const { fps, durationInFrames } = useVideoConfig();
+  const op = Math.min(
+    interpolate(frame, [0, 0.4 * fps], [0, 1], { extrapolateRight: "clamp" }),
+    interpolate(frame, [durationInFrames - 0.4 * fps, durationInFrames], [1, 0], { extrapolateLeft: "clamp" }),
+  );
+  const lineW = interpolate(frame, [0.3 * fps, 0.9 * fps], [0, 220 * s], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  return (
+    <AbsoluteFill style={{ backgroundColor: "#0e0e0e", justifyContent: "center", alignItems: "center", opacity: op, padding: `0 ${80 * s}px` }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22 * s, textAlign: "center" }}>
+        {destination && (
+          <span style={{ fontFamily: montserrat, fontSize: 30 * s, fontWeight: 600, letterSpacing: "0.22em", textTransform: "uppercase", color: CORAL }}>{destination}</span>
+        )}
+        <span style={{ fontFamily: montserrat, fontSize: 76 * s, fontWeight: 700, lineHeight: 1.04, textTransform: "uppercase", color: "#fff", letterSpacing: "0.01em" }}>{hotelName}</span>
+        <div style={{ width: lineW, height: 4 * s, borderRadius: 4, background: CORAL }} />
+      </div>
+      <div style={{ position: "absolute", bottom: 130 * s, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
+        <Img src={staticFile("vod-logo.png")} style={{ width: 340 * s, height: "auto", filter: "drop-shadow(0 2px 10px rgba(0,0,0,0.55))" }} />
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+export const RoomTour: React.FC<RoomTourProps> = ({ kicker, shots, musiqueUrl, hotelName, destination }) => {
+  const { fps, width, durationInFrames } = useVideoConfig();
   const s = width / 1080;
+  const frame = useCurrentFrame();
+  const shotsFrames = shots.reduce((a, sh) => a + Math.max(1, Math.round(sh.durationSeconds * fps)), 0);
+  const inPackshot = !!hotelName && frame >= shotsFrames;
   return (
     <AbsoluteFill style={{ backgroundColor: "#000" }}>
       {musiqueUrl && (
@@ -86,8 +122,14 @@ export const RoomTour: React.FC<RoomTourProps> = ({ kicker, shots, musiqueUrl })
         ))}
       </Series>
 
-      {/* Habillage persistant : pill kicker + filet corail, en haut */}
-      {kicker && (
+      {hotelName && (
+        <Sequence from={shotsFrames} durationInFrames={Math.max(1, durationInFrames - shotsFrames)}>
+          <Packshot hotelName={hotelName} destination={destination || ""} s={s} />
+        </Sequence>
+      )}
+
+      {/* Habillage persistant : pill kicker + filet corail, en haut (masqué pendant le packshot) */}
+      {kicker && !inPackshot && (
         <div style={{ position: "absolute", top: 90 * s, left: 64 * s, display: "flex", flexDirection: "column", gap: 12 * s }}>
           <div style={{ display: "inline-flex", alignSelf: "flex-start", padding: `${10 * s}px ${22 * s}px`, borderRadius: 999, backgroundColor: "rgba(242,139,154,0.18)", border: `${1.5 * s}px solid ${CORAL}`, backdropFilter: "blur(6px)" }}>
             <span style={{ fontFamily: montserrat, fontSize: 26 * s, fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "#fff" }}>{kicker}</span>
@@ -96,10 +138,12 @@ export const RoomTour: React.FC<RoomTourProps> = ({ kicker, shots, musiqueUrl })
         </div>
       )}
 
-      {/* Signature VoD centrée en bas (logo) */}
-      <div style={{ position: "absolute", bottom: 84 * s, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
-        <Img src={staticFile("vod-logo.png")} style={{ width: 320 * s, height: "auto", filter: "drop-shadow(0 2px 10px rgba(0,0,0,0.55))" }} />
-      </div>
+      {/* Signature VoD centrée en bas (logo) — masquée pendant le packshot (il a le sien) */}
+      {!inPackshot && (
+        <div style={{ position: "absolute", bottom: 84 * s, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
+          <Img src={staticFile("vod-logo.png")} style={{ width: 320 * s, height: "auto", filter: "drop-shadow(0 2px 10px rgba(0,0,0,0.55))" }} />
+        </div>
+      )}
     </AbsoluteFill>
   );
 };
