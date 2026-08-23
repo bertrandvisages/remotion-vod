@@ -10,6 +10,7 @@ import {
 } from "remotion";
 import { Video, Audio } from "@remotion/media";
 import { loadFont as loadMontserrat } from "@remotion/google-fonts/Montserrat";
+import { kenBurns } from "../kenBurns";
 
 const { fontFamily: montserrat } = loadMontserrat("normal", { weights: ["500", "600", "700"], subsets: ["latin"] });
 
@@ -51,15 +52,16 @@ const Subtitle: React.FC<{ text: string; durF: number; s: number }> = ({ text, d
   );
 };
 
-const Shot: React.FC<RoomTourShot & { s: number }> = ({ videoUrl, subtitle, voUrl, ownAudio, s }) => {
+const Shot: React.FC<RoomTourShot & { s: number; seed?: number }> = ({ videoUrl, subtitle, voUrl, ownAudio, s, seed = 0 }) => {
   const { durationInFrames } = useVideoConfig();
   const frame = useCurrentFrame();
-  // Ken Burns doux (pas de fondu au noir entre plans -> coupes franches, propres)
-  const scale = interpolate(frame, [0, durationInFrames], [1.04, 1.1], { extrapolateRight: "clamp" });
+  // Ken Burns doux + léger travelling (révèle les côtés rognés en cadre vertical).
+  // Pan volontairement discret : les clips room-tour ont souvent déjà un mouvement caméra.
+  const { scale, objectPosition } = kenBurns({ frame, durationInFrames, seed, zoomFrom: 1.04, zoomTo: 1.1, panX: 0.11, panY: 0.04 });
   return (
     <AbsoluteFill style={{ backgroundColor: "#000" }}>
       <AbsoluteFill style={{ transform: `scale(${scale})` }}>
-        <Video src={videoUrl} muted={!ownAudio} objectFit="cover" style={{ width: "100%", height: "100%" }} />
+        <Video src={videoUrl} muted={!ownAudio} objectFit="cover" style={{ width: "100%", height: "100%", objectPosition }} />
       </AbsoluteFill>
       {voUrl && <Audio src={voUrl} volume={0.9} />}
       {/* dégradé bas pour lisibilité sous-titre */}
@@ -81,7 +83,7 @@ export const RoomTour: React.FC<RoomTourProps> = ({ kicker, shots, musiqueUrl })
       <Series>
         {shots.map((shot, i) => (
           <Series.Sequence key={i} durationInFrames={Math.max(1, Math.round(shot.durationSeconds * fps))}>
-            <Shot {...shot} s={s} />
+            <Shot {...shot} s={s} seed={i} />
           </Series.Sequence>
         ))}
       </Series>

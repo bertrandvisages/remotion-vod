@@ -11,6 +11,7 @@ import {
 import { Video, Audio } from "@remotion/media";
 import { loadFont as loadOswald } from "@remotion/google-fonts/Oswald";
 import { loadFont as loadMontserrat } from "@remotion/google-fonts/Montserrat";
+import { kenBurns } from "../kenBurns";
 
 const { fontFamily: oswald } = loadOswald("normal", { weights: ["500", "600", "700"], subsets: ["latin"] });
 const { fontFamily: montserrat } = loadMontserrat("normal", { weights: ["500", "600"], subsets: ["latin"] });
@@ -83,11 +84,11 @@ const TitleReveal: React.FC<{ text: string; tagline?: string; s: number }> = ({ 
   );
 };
 
-const Clip: React.FC<TrailerClip & { s: number }> = ({ videoUrl, tcIn, focalX = 0.5, focalY = 0.5, keyword, title, tagline, s }) => {
+const Clip: React.FC<TrailerClip & { s: number; seed?: number }> = ({ videoUrl, tcIn, focalX = 0.5, focalY = 0.5, keyword, title, tagline, s, seed = 0 }) => {
   const { fps, durationInFrames } = useVideoConfig();
   const frame = useCurrentFrame();
-  // Ken burns doux (dynamise le montage)
-  const scale = interpolate(frame, [0, durationInFrames], [1.05, 1.13]);
+  // Ken burns doux + travelling autour du focal (révèle les côtés rognés par le cover vertical).
+  const { scale, objectPosition } = kenBurns({ frame, durationInFrames, focalX, focalY, seed, zoomFrom: 1.05, zoomTo: 1.12, panX: 0.16, panY: 0.05 });
   return (
     <AbsoluteFill style={{ backgroundColor: "#000" }}>
       <AbsoluteFill style={{ transform: `scale(${scale})` }}>
@@ -96,7 +97,7 @@ const Clip: React.FC<TrailerClip & { s: number }> = ({ videoUrl, tcIn, focalX = 
           trimBefore={Math.round(tcIn * fps)}
           objectFit="cover"
           muted
-          style={{ width: "100%", height: "100%", objectPosition: `${focalX * 100}% ${focalY * 100}%` }}
+          style={{ width: "100%", height: "100%", objectPosition }}
         />
       </AbsoluteFill>
       {/* léger vignettage bas pour la lisibilité des mots-clés */}
@@ -128,7 +129,7 @@ export const DestinationTrailer: React.FC<DestinationTrailerProps> = ({ clips, m
       <Series>
         {clips.map((c, i) => (
           <Series.Sequence key={i} durationInFrames={Math.max(1, Math.round(c.duration * fps))}>
-            <Clip {...c} s={s} />
+            <Clip {...c} s={s} seed={i} />
           </Series.Sequence>
         ))}
       </Series>
