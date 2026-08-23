@@ -8,6 +8,7 @@ import {
 import { Video, Audio } from "@remotion/media";
 import { loadFont as loadMontserrat } from "@remotion/google-fonts/Montserrat";
 import { loadFont as loadOswald } from "@remotion/google-fonts/Oswald";
+import { kenBurns } from "../kenBurns";
 
 const { fontFamily: montserrat } = loadMontserrat("normal", {
   weights: ["400", "500", "600"],
@@ -48,9 +49,15 @@ export const HookDestination: React.FC<HookDestinationProps> = ({
   // Échelle typographique relative à la largeur (1080 -> facteur 1).
   const s = width / 1080;
 
-  // Ken Burns doux (léger zoom-in continu).
-  const scale = interpolate(frame, [0, durationInFrames], [1.04, 1.12], {
-    extrapolateRight: "clamp",
+  // Ken Burns doux (zoom-in continu) + travelling latéral : révèle les côtés
+  // rognés par le cover vertical, on comprend mieux la scène d'accroche.
+  const { scale, objectPosition } = kenBurns({
+    frame,
+    durationInFrames,
+    zoomFrom: 1.04,
+    zoomTo: 1.12,
+    panX: 0.18,
+    panY: 0.05,
   });
 
   // Apparition de l'habillage.
@@ -80,7 +87,7 @@ export const HookDestination: React.FC<HookDestinationProps> = ({
             src={clipUrl}
             trimBefore={Math.round(tcIn * fps)}
             objectFit="cover"
-            style={{ width: "100%", height: "100%" }}
+            style={{ width: "100%", height: "100%", objectPosition }}
             muted
           />
         </AbsoluteFill>
